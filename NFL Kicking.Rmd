@@ -57,7 +57,8 @@ rates_dist_plot <- ggplot(data = rates_dist, aes(x=Dist, y=made_prop)) +
   geom_point() +
   geom_errorbar(aes(ymin = made_prop - 2*se, ymax = made_prop + 2*se)) +
   labs(x = "Distance", y = "Proportion Made",
-       caption = "Error bars two standard errors.") +
+       caption = "Error bars two standard errors.",
+       title="Make Rate vs Distance") +
   theme_bw()
 rates_dist_plot
 
@@ -73,6 +74,12 @@ kicker_rating <- ranef(glmer_M2)$Player %>%
   inner_join(kicker_rates, by = "Player") %>%
   filter(n_kicks > 1) %>% dplyr::select(-n_kicks)
 
+kr_plot <- ggplot(data = kicker_rating, aes(x=make_rate,y=Rating)) +
+  geom_point() +
+  labs(x="Proportion Made",y="Rating",
+       title="Player Rating vs Proportion of Kicks Made") +
+  theme_bw()
+kr_plot
 
 ```
 
