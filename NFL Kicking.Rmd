@@ -1,5 +1,10 @@
 ---
 title: "NFL Kicking"
+knit: (function(input_file, encoding) {
+  out_dir <- 'docs';
+  rmarkdown::render(input_file,
+ encoding=encoding,
+ output_file=file.path(dirname(input_file), out_dir, 'index.html'))})
 author: "Jackson Monroe"
 date: "5/23/2021"
 output: html_document
@@ -34,7 +39,7 @@ kicks <- read.csv("/Users/jackson/Desktop/R/kicks data.txt") %>%
   data.frame
 ```
 
-```{r Visualization, echo=F}
+```{r Visualization, echo=FALSE}
 kicker_rates <- kicks %>%
   group_by(Player) %>%
   summarize(make_rate = mean(made), n_kicks = n(), .groups = "drop") %>%
