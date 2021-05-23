@@ -7,7 +7,66 @@ output: html_document
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
+
+library(ggplot2)
+library(rstanarm)
+library(arm)
+library(lme4)
+library(tidyverse)
+library(tidytable)
+library(lubridate)
+
+options(mc.cores=4)
+
+kicks <- read.csv("/Users/jackson/Desktop/R/kicks data.txt") %>%
+  dplyr::select(-Rk) %>%
+  distinct.() %>%
+  mutate.(date = lubridate::date(Date)) %>%
+  dplyr::select(-Date) %>%
+  mutate(home = case_when(X == "@" ~ Opp,
+                          X == "" ~ Tm)) %>%
+  mutate.(blocked = (Blk. == "Y"), made = (Good. == "Y")) %>%
+  mutate.(at_den = (home == "DEN"), dist_cent = scale(Dist)) %>%
+  mutate.(angle_to_kicker = atan(6.17 / Dist) * 180 / pi) %>%
+  mutate.(month = month(date), year = year(date)) %>%
+  mutate.(season = case_when(month > 4 ~ year,
+                            month <=4 ~ year-1)) %>%
+  data.frame
 ```
+
+```{r Visualization, echo=F}
+rates_dist <- kicks %>%
+  summarize.(made_prop = mean(made),
+             n.(),
+             .by = Dist) %>%
+  arrange(Dist) %>%
+  mutate(se = sqrt(made_prop * (1 - made_prop) / N)) %>%
+  filter(N>10)
+
+rates_dist_plot <- ggplot(data = rates_dist, aes(x=Dist, y=made_prop)) +
+  geom_point() +
+  geom_errorbar(aes(ymin = made_prop - 2*se, ymax = made_prop + 2*se)) +
+  labs(x = "Distance", y = "Proportion Made",
+       caption = "Error bars two standard errors.") +
+  theme_bw()
+rates_dist_plot
+
+
+glmer_M2 <- stan_glmer(made ~ dist_cent + (1 | Player) + (1 | home), 
+                       data = kicks,
+                       family = binomial(link = "logit"), 
+                       chains = 4, iter = 2000)
+
+kicker_rating <- ranef(glmer_M2)$Player %>% 
+  rownames_to_column("Player") %>% 
+  rename(Rating = "(Intercept)") %>% 
+  inner_join(kicker_rates, by = "Player") %>%
+  filter(n_kicks > 1) %>% dplyr::select(-n_kicks)
+
+```
+
+
+
 
 
 
