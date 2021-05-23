@@ -35,6 +35,11 @@ kicks <- read.csv("/Users/jackson/Desktop/R/kicks data.txt") %>%
 ```
 
 ```{r Visualization, echo=F}
+kicker_rates <- kicks %>%
+  group_by(Player) %>%
+  summarize(make_rate = mean(made), n_kicks = n(), .groups = "drop") %>%
+  filter(make_rate > 0)
+
 rates_dist <- kicks %>%
   summarize.(made_prop = mean(made),
              n.(),
@@ -65,8 +70,5 @@ kicker_rating <- ranef(glmer_M2)$Player %>%
 
 
 ```
-
-
-s
 
 
