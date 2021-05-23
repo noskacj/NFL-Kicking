@@ -63,10 +63,10 @@ kicker_rating <- ranef(glmer_M2)$Player %>%
   inner_join(kicker_rates, by = "Player") %>%
   filter(n_kicks > 1) %>% dplyr::select(-n_kicks)
 
+
 ```
 
 
-
-
+s
 
 
