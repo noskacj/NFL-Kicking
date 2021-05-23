@@ -133,7 +133,7 @@ kick_{dist} \sim Binomial(n_{dist}, logit^{-1}(\alpha_{Player}+\beta_{Distance}*
 ```{r Model, echo=FALSE}
 #glm(made ~ dist_cent + factor(Player), data=kicks, family = binomial)
 
-glmer_M2 <- stan_glmer(made ~ dist_cent + (1 | Player) + (1 | home), 
+glmer_M2 <- stan_glmer(made ~ dist_cent + (1 | Player), 
                        data = kicks,
                        family = binomial(link = "logit"), 
                        chains = 4, iter = 2000)
@@ -154,8 +154,8 @@ kr_plot
 kr_trim <- kicker_rating %>%
   arrange(Rating) %>%
   slice_head(n=5) %>%
-  slice_tail(n=5) %>%
-  mutate(Rating = round(Rating, 2))
+  slice_tail(n=10) %>%
+  mutate(Rating = round(Rating, 2), make_rate = round(make_rate, 2))
 
 kable(kr_trim, caption = "Kicker Ratings")
 
