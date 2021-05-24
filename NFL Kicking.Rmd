@@ -136,7 +136,7 @@ kick_{dist} \sim Binomial(n_{dist}, logit^{-1}(\alpha_{Player}+\beta_{Distance}*
 glmer_M2 <- stan_glmer(made ~ dist_cent + (1 | Player), 
                        data = kicks,
                        family = binomial(link = "logit"), 
-                       chains = 4, iter = 2000)
+                       chains = 4, iter = 1000)
 
 kicker_rating <- ranef(glmer_M2)$Player %>% 
   rownames_to_column("Player") %>% 
@@ -151,13 +151,21 @@ kr_plot <- ggplot(data = kicker_rating, aes(x=make_rate,y=Rating)) +
   theme_bw()
 kr_plot
 
-kr_trim <- kicker_rating %>%
+k <- nrow(kicker_rating)
+
+kr_trim_top <- kicker_rating %>%
+  arrange(Rating) %>%
+  slice_tail(n=5)
+  
+
+kr_trimp_bot <- kicker_rating %>%
   arrange(Rating) %>%
   slice_head(n=5) %>%
-  slice_tail(n=10) %>%
+  bind_rows(kr_trim_top) %>%
+  arrange(desc(Rating)) %>%
   mutate(Rating = round(Rating, 2), make_rate = round(make_rate, 2))
 
-kable(kr_trim, caption = "Kicker Ratings")
+kable(kr_trimp_bot, caption = "Kicker Ratings")
 
 ```
 
