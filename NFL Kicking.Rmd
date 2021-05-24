@@ -155,19 +155,32 @@ kr_plot
 
 kr_trim_top <- kicker_rating %>%
   arrange(Rating) %>%
-  slice_tail(n=5)
+  slice_tail(n=10)
   
 
 kr_trimp_bot <- kicker_rating %>%
   arrange(Rating) %>%
-  slice_head(n=5) %>%
+  slice_head(n=10) %>%
   bind_rows(kr_trim_top) %>%
   arrange(desc(Rating)) %>%
-  mutate(Rating = round(Rating, 2), make_rate = round(make_rate, 2))
+  mutate(Rating = round(Rating, 3), make_rate = round(make_rate, 3))
 
 # , caption = "Kicker Ratings (Top and Bottom 5)"
 kable(kr_trimp_bot)
 
+```
+
+
+
+# Appendix
+
+```{r App, echo=FALSE}
+
+kr_all <- kicker_rating %>%
+  arrange(desc(Rating)) %>%
+  mutate(Rating = round(Rating, 3), make_rate = round(make_rate, 3))
+
+kable(kr_all)
 ```
 
 
