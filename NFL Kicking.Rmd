@@ -35,8 +35,8 @@ kicks <- read.csv("/Users/jackson/Desktop/R/kicks data.txt") %>%
   mutate.(at_den = (home == "DEN"), dist_cent = scale(Dist)) %>%
   mutate.(angle_to_kicker = atan(6.17 / Dist) * 180 / pi) %>%
   mutate.(month = month(date), year = year(date)) %>%
-  mutate.(season = case_when(month > 4 ~ year,
-                            month <=4 ~ year-1)) %>%
+  # mutate.(season = case_when(month > 4 ~ year,
+  #                           month <=4 ~ year-1)) %>%
   data.frame
 ```
 
@@ -130,6 +130,8 @@ kick_{dist} \sim Binomial(n_{dist}, logit^{-1}(\alpha_{Player}+\beta_{Distance}*
 \]
 # Results
 
+Player rating is roughly correlated with the career rate of success above 80\%, but the relationship diminishes beneath 80\%.
+
 ```{r Model, echo=FALSE}
 #glm(made ~ dist_cent + factor(Player), data=kicks, family = binomial)
 
@@ -151,8 +153,6 @@ kr_plot <- ggplot(data = kicker_rating, aes(x=make_rate,y=Rating)) +
   theme_bw()
 kr_plot
 
-k <- nrow(kicker_rating)
-
 kr_trim_top <- kicker_rating %>%
   arrange(Rating) %>%
   slice_tail(n=5)
@@ -165,7 +165,8 @@ kr_trimp_bot <- kicker_rating %>%
   arrange(desc(Rating)) %>%
   mutate(Rating = round(Rating, 2), make_rate = round(make_rate, 2))
 
-kable(kr_trimp_bot, caption = "Kicker Ratings")
+# , caption = "Kicker Ratings (Top and Bottom 5)"
+kable(kr_trimp_bot)
 
 ```
 
