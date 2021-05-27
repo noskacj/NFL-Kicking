@@ -19,6 +19,7 @@ library(knitr)
 library(arm)
 library(lme4)
 library(tidyverse)
+library(rstan)
 library(tidytable)
 library(lubridate)
 
@@ -170,7 +171,77 @@ kable(kr_trimp_bot)
 
 ```
 
+```{r Model Sigma, echo=FALSE, eval=FALSE}
+rates_dist2 <- kicks %>%
+  summarize.(att = n.(),
+             made = sum(made),
+             .by = Dist) %>%
+  arrange(Dist)
 
+
+sig_data <- list(N = nrow(rates_dist2),
+                 made = rates_dist2$made,
+                 att = rates_dist2$att,
+                 dist = rates_dist2$Dist)
+
+sig_mod <- stan_model("/Users/jackson/NFL-Kicking/NFL Kicking golf.stan")
+sig_samp <- sampling(object = sig_mod, data = sig_data, iter = 4e3,
+                     chains = 4)
+
+print(sig_samp, digits = 3, pars = c("sigma_degrees", "sigma"))
+
+make_hat <- rstan::monitor(rstan::extract(sig_samp, pars = "made_hat", permuted=F),
+                           warmup=0, print=F) %>%
+  data.frame %>%
+  select(mean) %>%
+  cbind(rates_dist2) %>%
+  mutate(prop = made/att, prop_hat = mean/att)
+
+make_hat
+
+mh_plot <- ggplot(data = make_hat, aes(x=Dist)) +
+  geom_point(aes(y = prop), color = "red") +
+  geom_point(aes(y = prop_hat)) +
+  labs(x = "Distance (Yards)", y = "Proportion Made",
+       title = "Angle Model") +
+  theme_bw()
+mh_plot
+
+rates_dist3 <- kicks %>%
+  summarize.(att = n.(),
+             made = sum(made),
+             .by = c(Dist, Player)) %>%
+  group_by(Player) %>%
+  mutate(id = cur_group_id()) %>%
+  ungroup()
+
+stan_data2 <- kicks %>%
+  dplyr::select(made, Player, Dist) %>%
+  group_by(Player) %>%
+  mutate(id = cur_group_id()) %>%
+  ungroup() %>%
+  summarize.(made = sum(made),
+             att = n.(),
+             .by = c(Player, Dist, id))
+
+sd2_ids <- stan_data2 %>%
+  dplyr::select(Player, id) %>%
+  distinct() %>%
+  arrange(Player)
+sd2_ids
+
+sig_data2 <- list(N = nrow(stan_data2),
+                 made = stan_data2$made,
+                 att = stan_data2$att,
+                 dist = stan_data2$Dist,
+                 player = stan_data2$id,
+                 n_player = max(stan_data2$id))
+
+sig_mod2 <- stan_model("/Users/jackson/NFL-Kicking/NFL Kicking golf2.stan")
+sig_samp2 <- sampling(object = sig_mod2, data = sig_data2)
+print(sig_samp2, digits = 3, pars = "sigma_degrees")
+print(sig_samp2, pars = "tau_sigma", digits = 3)
+```
 
 # Appendix
 
